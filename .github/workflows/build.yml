@@ -1,0 +1,67 @@
+name: build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish (small, framework-dependent single file)
+        run: >
+          dotnet publish src/DuoSeat/DuoSeat.csproj
+          -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true -o publish
+
+      - name: Publish (self-contained, no .NET install needed)
+        run: >
+          dotnet publish src/DuoSeat/DuoSeat.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o publish-selfcontained
+
+      - name: Rename self-contained build
+        shell: pwsh
+        run: Move-Item publish-selfcontained/DuoSeat.exe publish/DuoSeat-selfcontained.exe
+
+      - name: Publish DuoSeat.Service (driver companion)
+        run: >
+          dotnet publish service/DuoSeat.Service/DuoSeat.Service.csproj
+          -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true -o publish-service
+
+      - name: Publish DuoSeat.Agent (runs inside the station-2 session)
+        run: >
+          dotnet publish agent/DuoSeat.Agent/DuoSeat.Agent.csproj
+          -c Release -r win-x64 --self-contained false
+          -p:PublishSingleFile=true -o publish-agent
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DuoSeat-win-x64
+          path: |
+            publish/DuoSeat.exe
+            publish/DuoSeat-selfcontained.exe
+            publish-service/DuoSeat.Service.exe
+            publish-agent/DuoSeat.Agent.exe
+
+      - name: Attach to GitHub release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            publish/DuoSeat.exe
+            publish/DuoSeat-selfcontained.exe
+            publish-service/DuoSeat.Service.exe
+            publish-agent/DuoSeat.Agent.exe
