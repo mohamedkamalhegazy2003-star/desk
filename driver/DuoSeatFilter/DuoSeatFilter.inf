@@ -1,0 +1,45 @@
+; DuoSeatFilter.inf  -  "right-click Install" style INF. It only registers the kernel service
+; (and its KMDF binding). Attaching the filter to the keyboard/mouse classes is done by
+; scripts\enable-filter.ps1.  Install with scripts\install-driver.ps1 (test-signing required).
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = System
+ClassGuid   = {4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider    = %ProviderName%
+DriverVer   = 10/09/2026,0.3.0.0
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[SourceDisksNames]
+1 = %DiskName%,,,
+
+[SourceDisksFiles]
+DuoSeatFilter.sys = 1
+
+[DefaultInstall.NT]
+CopyFiles = DuoSeatFilter.CopyFiles
+
+[DuoSeatFilter.CopyFiles]
+DuoSeatFilter.sys
+
+[DefaultInstall.NT.Services]
+AddService = DuoSeatFilter,,DuoSeatFilter.Service
+
+[DuoSeatFilter.Service]
+DisplayName    = %ServiceName%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START (loaded when a class filter list names it)
+ErrorControl   = 1
+ServiceBinary  = %12%\DuoSeatFilter.sys
+
+[DefaultInstall.NT.Wdf]
+KmdfService = DuoSeatFilter, DuoSeatFilter.wdfsect
+
+[DuoSeatFilter.wdfsect]
+KmdfLibraryVersion = 1.15
+
+[Strings]
+ProviderName = "DuoSeat"
+ServiceName  = "DuoSeat Input Filter"
+DiskName     = "DuoSeat Driver Disk"

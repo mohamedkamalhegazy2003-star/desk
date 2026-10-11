@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>DuoSeat.Agent</AssemblyName>
+    <RootNamespace>DuoSeat.Agent</RootNamespace>
+    <Version>0.5.0</Version>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- No admin manifest on purpose: the agent runs as the (normal) station-2 user. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\DuoSeat\Native.cs" Link="Native.cs" />
+  </ItemGroup>
+
+</Project>
